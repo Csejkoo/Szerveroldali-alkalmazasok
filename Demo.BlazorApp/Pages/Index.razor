@@ -1,0 +1,86 @@
+﻿@page "/"
+@using Demo.ApiClient1;
+@using Demo.ApiClient1.Models.ApiModels;
+@inject DemoApiClientService apiClient1
+
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input @bind="addProductModel.ProductDescription" class="form-control" placeholder="Code" />
+                    </td>
+                    <td>
+                        <input @bind="addProductModel.ProductName" class="form-control" placeholder="Name" />
+                    </td>
+                    <td>
+                        <input @bind="addProductModel.ProductPrice" class="form-control" placeholder="Price" />
+                    </td>
+                    <td>
+                        <a @onclick="AddProduct" href="javascript:void(0)">Save</a>
+                    </td>
+                </tr>
+                @if (products?.Any() ?? false)
+                {
+                    @foreach (var product in products)
+                    {
+                        <ProductRowItemComponent ProductRowItem="product"
+                                                 OnEdit="EditProduct"
+                                                 OnDelete="DeleteProduct" />
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="text-center" colspan="3">- No Products -</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<Product>? products;
+    private Product addProductModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        products = await apiClient1.GetProducts();
+    }
+
+    private async Task AddProduct()
+    {
+        await apiClient1.SaveProduct(addProductModel);
+        await LoadProducts();
+        addProductModel = new();
+    }
+
+    private async Task EditProduct(Product product)
+    {
+        await apiClient1.UpdateProduct(product);
+        await LoadProducts();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        await apiClient1.DeleteProduct(id);
+        await LoadProducts();
+    }
+}
